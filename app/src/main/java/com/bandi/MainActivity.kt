@@ -742,6 +742,36 @@ fun sampleModules(): List<Module> {
             targetDurationSec = 4.2,
             focusWords = listOf("name", "live", "warsaw"),
             imageRes = R.drawable.ic_dialog
+        ),
+        Lesson(
+            title = "Alfabet i literowanie",
+            subtitle = "Spell it out",
+            progressPercent = 12,
+            samplePhrase = "Could you spell your last name for me?",
+            level = LessonLevel.BASIC,
+            targetDurationSec = 4.4,
+            focusWords = listOf("spell", "last", "name"),
+            imageRes = R.drawable.ic_vocab
+        ),
+        Lesson(
+            title = "Pytania podstawowe",
+            subtitle = "Where, what, how",
+            progressPercent = 18,
+            samplePhrase = "Where is the nearest bus stop?",
+            level = LessonLevel.BASIC,
+            targetDurationSec = 3.6,
+            focusWords = listOf("where", "nearest", "stop"),
+            imageRes = R.drawable.ic_dialog
+        ),
+        Lesson(
+            title = "Rodzina i relacje",
+            subtitle = "Opisywanie bliskich",
+            progressPercent = 10,
+            samplePhrase = "My sister lives in Krakow and works as a nurse.",
+            level = LessonLevel.BASIC,
+            targetDurationSec = 5.1,
+            focusWords = listOf("sister", "works", "nurse"),
+            imageRes = R.drawable.ic_vocab
         )
     )
 
@@ -765,6 +795,36 @@ fun sampleModules(): List<Module> {
             targetDurationSec = 4.3,
             focusWords = listOf("connecting", "flight", "london"),
             imageRes = R.drawable.ic_travel
+        ),
+        Lesson(
+            title = "Hotel i rezerwacja",
+            subtitle = "Check-in",
+            progressPercent = 28,
+            samplePhrase = "I have a reservation under the name Kowalski.",
+            level = LessonLevel.INTERMEDIATE,
+            targetDurationSec = 4.8,
+            focusWords = listOf("reservation", "under", "name"),
+            imageRes = R.drawable.ic_travel
+        ),
+        Lesson(
+            title = "Restauracja",
+            subtitle = "Zamawianie jedzenia",
+            progressPercent = 32,
+            samplePhrase = "Could I have the chicken salad, please?",
+            level = LessonLevel.INTERMEDIATE,
+            targetDurationSec = 4.0,
+            focusWords = listOf("chicken", "salad", "please"),
+            imageRes = R.drawable.ic_travel
+        ),
+        Lesson(
+            title = "Transport miejski",
+            subtitle = "Bilety i kierunki",
+            progressPercent = 22,
+            samplePhrase = "Does this bus go to the city center?",
+            level = LessonLevel.INTERMEDIATE,
+            targetDurationSec = 4.1,
+            focusWords = listOf("bus", "city", "center"),
+            imageRes = R.drawable.ic_travel
         )
     )
 
@@ -780,6 +840,16 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_dialog
         ),
         Lesson(
+            title = "Raportowanie",
+            subtitle = "Statusy i wyniki",
+            progressPercent = 40,
+            samplePhrase = "The campaign exceeded our targets this quarter.",
+            level = LessonLevel.INTERMEDIATE,
+            targetDurationSec = 4.5,
+            focusWords = listOf("campaign", "targets", "quarter"),
+            imageRes = R.drawable.ic_business
+        ),
+        Lesson(
             title = "Prezentacja",
             subtitle = "Mowa formalna",
             progressPercent = 10,
@@ -788,6 +858,26 @@ fun sampleModules(): List<Module> {
             targetDurationSec = 4.7,
             focusWords = listOf("present", "quarterly", "results"),
             imageRes = R.drawable.ic_presentation
+        ),
+        Lesson(
+            title = "Rozmowa z klientem",
+            subtitle = "Budowanie relacji",
+            progressPercent = 25,
+            samplePhrase = "We appreciate your feedback and will follow up shortly.",
+            level = LessonLevel.ADVANCED,
+            targetDurationSec = 5.1,
+            focusWords = listOf("appreciate", "feedback", "follow"),
+            imageRes = R.drawable.ic_business
+        ),
+        Lesson(
+            title = "Spotkanie online",
+            subtitle = "Zasady i podsumowanie",
+            progressPercent = 18,
+            samplePhrase = "Let us wrap up and outline the next steps.",
+            level = LessonLevel.INTERMEDIATE,
+            targetDurationSec = 4.2,
+            focusWords = listOf("wrap", "outline", "steps"),
+            imageRes = R.drawable.ic_business
         )
     )
 
@@ -811,6 +901,36 @@ fun sampleModules(): List<Module> {
             targetDurationSec = 5.2,
             focusWords = listOf("agreement", "benefits", "sides"),
             imageRes = R.drawable.ic_fluency
+        ),
+        Lesson(
+            title = "Debata",
+            subtitle = "Argumentacja",
+            progressPercent = 8,
+            samplePhrase = "I respect your view, yet I see it differently.",
+            level = LessonLevel.ADVANCED,
+            targetDurationSec = 5.0,
+            focusWords = listOf("respect", "view", "differently"),
+            imageRes = R.drawable.ic_fluency
+        ),
+        Lesson(
+            title = "Storytelling",
+            subtitle = "Narracja i emocje",
+            progressPercent = 6,
+            samplePhrase = "The turning point came when we chose to act.",
+            level = LessonLevel.ADVANCED,
+            targetDurationSec = 5.1,
+            focusWords = listOf("turning", "point", "act"),
+            imageRes = R.drawable.ic_fluency
+        ),
+        Lesson(
+            title = "Wystąpienie eksperckie",
+            subtitle = "Precyzja i pewność",
+            progressPercent = 4,
+            samplePhrase = "Our findings highlight a significant shift in behavior.",
+            level = LessonLevel.ADVANCED,
+            targetDurationSec = 5.4,
+            focusWords = listOf("findings", "significant", "behavior"),
+            imageRes = R.drawable.ic_presentation
         )
     )
 
