@@ -49,6 +49,11 @@ Aplikacja ma prowadzić użytkownika przez lekcje od podstaw do poziomu zaawanso
 - `assets/` – obrazki do słownictwa
 - `docs/` – dokumentacja, plan lekcji, makiety UI
 
+## Uruchomienie
+1. Otwórz projekt w Android Studio.
+2. Poczekaj na synchronizację Gradle.
+3. Uruchom konfigurację `app` na emulatorze lub urządzeniu.
+
 ## Jak współtworzyć
 Jeśli chcesz pomóc w rozwoju, opisz proszę:
 - poziom docelowy użytkownika,
