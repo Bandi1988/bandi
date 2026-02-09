@@ -34,6 +34,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,6 +44,8 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -63,6 +67,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -75,18 +80,31 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private enum class BandiTab {
+    HOME,
+    PROGRESS
+}
+
 @Composable
 fun BandiApp(context: Context) {
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
-    val lessons = remember { sampleLessons() }
+    var selectedModule by remember { mutableStateOf<Module?>(null) }
+    var currentTab by remember { mutableStateOf(BandiTab.HOME) }
+    val modules = remember { sampleModules() }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Bandi - English Coach") },
-                navigationIcon = if (selectedLesson != null) {
+                navigationIcon = if (selectedLesson != null || selectedModule != null) {
                     {
-                        IconButton(onClick = { selectedLesson = null }) {
+                        IconButton(onClick = {
+                            if (selectedLesson != null) {
+                                selectedLesson = null
+                            } else {
+                                selectedModule = null
+                            }
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
                                 contentDescription = "Wstecz",
@@ -102,20 +120,57 @@ fun BandiApp(context: Context) {
                     titleContentColor = Color.White
                 )
             )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = currentTab == BandiTab.HOME,
+                    onClick = {
+                        currentTab = BandiTab.HOME
+                        selectedLesson = null
+                        selectedModule = null
+                    },
+                    icon = { Icon(Icons.Default.School, contentDescription = null) },
+                    label = { Text("Kurs") }
+                )
+                NavigationBarItem(
+                    selected = currentTab == BandiTab.PROGRESS,
+                    onClick = {
+                        currentTab = BandiTab.PROGRESS
+                        selectedLesson = null
+                        selectedModule = null
+                    },
+                    icon = { Icon(Icons.Default.ShowChart, contentDescription = null) },
+                    label = { Text("Postęp") }
+                )
+            }
         }
     ) { paddingValues ->
-        if (selectedLesson == null) {
-            HomeScreen(
-                paddingValues = paddingValues,
-                lessons = lessons,
-                onLessonSelected = { selectedLesson = it }
-            )
-        } else {
-            LessonScreen(
-                paddingValues = paddingValues,
-                lesson = selectedLesson!!,
-                context = context
-            )
+        when {
+            currentTab == BandiTab.PROGRESS -> {
+                ProgressScreen(paddingValues = paddingValues, modules = modules)
+            }
+            selectedLesson != null -> {
+                LessonScreen(
+                    paddingValues = paddingValues,
+                    lesson = selectedLesson!!,
+                    context = context
+                )
+            }
+            selectedModule != null -> {
+                ModuleScreen(
+                    paddingValues = paddingValues,
+                    module = selectedModule!!,
+                    onLessonSelected = { selectedLesson = it }
+                )
+            }
+            else -> {
+                HomeScreen(
+                    paddingValues = paddingValues,
+                    modules = modules,
+                    onModuleSelected = { selectedModule = it }
+                )
+            }
         }
     }
 }
@@ -123,8 +178,8 @@ fun BandiApp(context: Context) {
 @Composable
 fun HomeScreen(
     paddingValues: androidx.compose.foundation.layout.PaddingValues,
-    lessons: List<Lesson>,
-    onLessonSelected: (Lesson) -> Unit
+    modules: List<Module>,
+    onModuleSelected: (Module) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -135,16 +190,16 @@ fun HomeScreen(
             HeroSection()
         }
         item {
+            SectionHeader("Moduły kursu")
+        }
+        items(modules) { module ->
+            ModuleCard(module, onModuleSelected)
+        }
+        item {
             SectionHeader("Poziomy")
         }
         item {
             LevelRow()
-        }
-        item {
-            SectionHeader("Twoje lekcje")
-        }
-        items(lessons) { lesson ->
-            LessonCard(lesson, onLessonSelected)
         }
         item {
             SectionHeader("Ćwiczenie mówienia")
@@ -156,13 +211,135 @@ fun HomeScreen(
 }
 
 @Composable
+fun ModuleScreen(
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    module: Module,
+    onLessonSelected: (Lesson) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+    ) {
+        item {
+            ModuleHeader(module)
+        }
+        items(module.lessons) { lesson ->
+            LessonCard(lesson, onLessonSelected)
+        }
+    }
+}
+
+@Composable
+fun ModuleHeader(module: Module) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF1F5FE))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = module.title,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = module.description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF546E7A)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        ProgressPill("${module.progressPercent}%")
+    }
+}
+
+@Composable
+fun ProgressScreen(
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    modules: List<Module>
+) {
+    val allLessons = modules.flatMap { it.lessons }
+    val averageScore = if (allLessons.isNotEmpty()) {
+        allLessons.map { it.progressPercent }.average().toInt()
+    } else {
+        0
+    }
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+    ) {
+        item {
+            SectionHeader("Twój postęp")
+        }
+        item {
+            ProgressSummaryCard(averageScore, modules.size, allLessons.size)
+        }
+        item {
+            SectionHeader("Postęp w modułach")
+        }
+        items(modules) { module ->
+            ProgressModuleCard(module)
+        }
+    }
+}
+
+@Composable
+fun ProgressSummaryCard(averageScore: Int, moduleCount: Int, lessonCount: Int) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Średni wynik: $averageScore%",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text("Moduły: $moduleCount  •  Lekcje: $lessonCount")
+            Spacer(modifier = Modifier.height(6.dp))
+            Text("Ostatnia sesja: 12 min, 5 ćwiczeń")
+        }
+    }
+}
+
+@Composable
+fun ProgressModuleCard(module: Module) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = module.imageRes),
+                contentDescription = null,
+                modifier = Modifier.size(42.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(module.title, fontWeight = FontWeight.SemiBold)
+                Text(module.description, style = MaterialTheme.typography.bodySmall)
+            }
+            ProgressPill("${module.progressPercent}%")
+        }
+    }
+}
+
+@Composable
 fun LessonScreen(
     paddingValues: androidx.compose.foundation.layout.PaddingValues,
     lesson: Lesson,
     context: Context
 ) {
     val ttsState = rememberTextToSpeech(context)
-    val speechState = rememberSpeechRecognizer(context, lesson.samplePhrase)
+    val speechState = rememberSpeechRecognizer(context, lesson)
 
     Column(
         modifier = Modifier
@@ -378,6 +555,47 @@ fun LevelChip(label: String) {
 }
 
 @Composable
+fun ModuleCard(module: Module, onModuleSelected: (Module) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable { onModuleSelected(module) },
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = module.imageRes),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color(0xFFE8EAF6), shape = RoundedCornerShape(12.dp))
+                    .padding(8.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = module.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = module.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF607D8B)
+                )
+            }
+            ProgressPill("${module.progressPercent}%")
+        }
+    }
+}
+
+@Composable
 fun LessonCard(lesson: Lesson, onLessonSelected: (Lesson) -> Unit) {
     Card(
         modifier = Modifier
@@ -414,7 +632,7 @@ fun LessonCard(lesson: Lesson, onLessonSelected: (Lesson) -> Unit) {
                     color = Color(0xFF607D8B)
                 )
             }
-            ProgressPill(lesson.progress)
+            ProgressPill("${lesson.progressPercent}%")
         }
     }
 }
@@ -480,9 +698,20 @@ fun ActionIcon(icon: ImageVector, label: String) {
 data class Lesson(
     val title: String,
     val subtitle: String,
-    val progress: String,
+    val progressPercent: Int,
     val samplePhrase: String,
     val level: LessonLevel,
+    val targetDurationSec: Double,
+    val focusWords: List<String>,
+    @DrawableRes val imageRes: Int
+)
+
+data class Module(
+    val title: String,
+    val description: String,
+    val level: LessonLevel,
+    val lessons: List<Lesson>,
+    val progressPercent: Int,
     @DrawableRes val imageRes: Int
 )
 
@@ -492,56 +721,134 @@ enum class LessonLevel {
     ADVANCED
 }
 
-fun sampleLessons(): List<Lesson> = listOf(
-    Lesson(
-        title = "Podstawy wymowy",
-        subtitle = "Samogłoski i spółgłoski",
-        progress = "Nowa",
-        samplePhrase = "Good morning. How are you today?",
-        level = LessonLevel.BASIC,
-        imageRes = R.drawable.ic_vocab
-    ),
-    Lesson(
-        title = "Przedstawianie się",
-        subtitle = "Pierwsze rozmowy",
-        progress = "20%",
-        samplePhrase = "My name is Anna and I live in Warsaw.",
-        level = LessonLevel.BASIC,
-        imageRes = R.drawable.ic_dialog
-    ),
-    Lesson(
-        title = "Zakupy w sklepie",
-        subtitle = "Zwroty praktyczne",
-        progress = "45%",
-        samplePhrase = "Could you help me find this size?",
-        level = LessonLevel.INTERMEDIATE,
-        imageRes = R.drawable.ic_vocab
-    ),
-    Lesson(
-        title = "Dialog w pracy",
-        subtitle = "Spotkanie zespołu",
-        progress = "60%",
-        samplePhrase = "Let us review the project timeline together.",
-        level = LessonLevel.INTERMEDIATE,
-        imageRes = R.drawable.ic_dialog
-    ),
-    Lesson(
-        title = "Prezentacja",
-        subtitle = "Mowa formalna",
-        progress = "10%",
-        samplePhrase = "Today I will present the quarterly results.",
-        level = LessonLevel.ADVANCED,
-        imageRes = R.drawable.ic_presentation
-    ),
-    Lesson(
-        title = "Wystąpienie publiczne",
-        subtitle = "Pewność i płynność",
-        progress = "5%",
-        samplePhrase = "Thank you for your attention and thoughtful questions.",
-        level = LessonLevel.ADVANCED,
-        imageRes = R.drawable.ic_presentation
+fun sampleModules(): List<Module> {
+    val basics = listOf(
+        Lesson(
+            title = "Podstawy wymowy",
+            subtitle = "Samogłoski i spółgłoski",
+            progressPercent = 15,
+            samplePhrase = "Good morning. How are you today?",
+            level = LessonLevel.BASIC,
+            targetDurationSec = 3.8,
+            focusWords = listOf("good", "morning", "today"),
+            imageRes = R.drawable.ic_vocab
+        ),
+        Lesson(
+            title = "Przedstawianie się",
+            subtitle = "Pierwsze rozmowy",
+            progressPercent = 20,
+            samplePhrase = "My name is Anna and I live in Warsaw.",
+            level = LessonLevel.BASIC,
+            targetDurationSec = 4.2,
+            focusWords = listOf("name", "live", "warsaw"),
+            imageRes = R.drawable.ic_dialog
+        )
     )
-)
+
+    val travel = listOf(
+        Lesson(
+            title = "Zakupy w sklepie",
+            subtitle = "Zwroty praktyczne",
+            progressPercent = 45,
+            samplePhrase = "Could you help me find this size?",
+            level = LessonLevel.INTERMEDIATE,
+            targetDurationSec = 4.0,
+            focusWords = listOf("help", "find", "size"),
+            imageRes = R.drawable.ic_vocab
+        ),
+        Lesson(
+            title = "Na lotnisku",
+            subtitle = "Odprawa i pytania",
+            progressPercent = 35,
+            samplePhrase = "I have a connecting flight to London.",
+            level = LessonLevel.INTERMEDIATE,
+            targetDurationSec = 4.3,
+            focusWords = listOf("connecting", "flight", "london"),
+            imageRes = R.drawable.ic_travel
+        )
+    )
+
+    val business = listOf(
+        Lesson(
+            title = "Dialog w pracy",
+            subtitle = "Spotkanie zespołu",
+            progressPercent = 60,
+            samplePhrase = "Let us review the project timeline together.",
+            level = LessonLevel.INTERMEDIATE,
+            targetDurationSec = 4.6,
+            focusWords = listOf("review", "project", "timeline"),
+            imageRes = R.drawable.ic_dialog
+        ),
+        Lesson(
+            title = "Prezentacja",
+            subtitle = "Mowa formalna",
+            progressPercent = 10,
+            samplePhrase = "Today I will present the quarterly results.",
+            level = LessonLevel.ADVANCED,
+            targetDurationSec = 4.7,
+            focusWords = listOf("present", "quarterly", "results"),
+            imageRes = R.drawable.ic_presentation
+        )
+    )
+
+    val advanced = listOf(
+        Lesson(
+            title = "Wystąpienie publiczne",
+            subtitle = "Pewność i płynność",
+            progressPercent = 5,
+            samplePhrase = "Thank you for your attention and thoughtful questions.",
+            level = LessonLevel.ADVANCED,
+            targetDurationSec = 4.9,
+            focusWords = listOf("attention", "thoughtful", "questions"),
+            imageRes = R.drawable.ic_presentation
+        ),
+        Lesson(
+            title = "Negocjacje",
+            subtitle = "Ton i perswazja",
+            progressPercent = 12,
+            samplePhrase = "We can reach an agreement that benefits both sides.",
+            level = LessonLevel.ADVANCED,
+            targetDurationSec = 5.2,
+            focusWords = listOf("agreement", "benefits", "sides"),
+            imageRes = R.drawable.ic_fluency
+        )
+    )
+
+    return listOf(
+        Module(
+            title = "Start z wymową",
+            description = "Podstawy dykcji i intonacji.",
+            level = LessonLevel.BASIC,
+            lessons = basics,
+            progressPercent = 18,
+            imageRes = R.drawable.ic_vocab
+        ),
+        Module(
+            title = "Podróże i zakupy",
+            description = "Praktyczne dialogi w ruchu.",
+            level = LessonLevel.INTERMEDIATE,
+            lessons = travel,
+            progressPercent = 40,
+            imageRes = R.drawable.ic_travel
+        ),
+        Module(
+            title = "Business English",
+            description = "Spotkania, prezentacje, formalny styl.",
+            level = LessonLevel.INTERMEDIATE,
+            lessons = business,
+            progressPercent = 35,
+            imageRes = R.drawable.ic_business
+        ),
+        Module(
+            title = "Zaawansowana płynność",
+            description = "Wystąpienia i negocjacje.",
+            level = LessonLevel.ADVANCED,
+            lessons = advanced,
+            progressPercent = 9,
+            imageRes = R.drawable.ic_fluency
+        )
+    )
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -584,7 +891,7 @@ fun rememberTextToSpeech(context: Context): TextToSpeechState {
 
 class SpeechState(
     private val context: Context,
-    private val samplePhrase: String
+    private val lesson: Lesson
 ) {
     var lastResult by mutableStateOf("")
         private set
@@ -595,6 +902,8 @@ class SpeechState(
 
     private var recognizer: SpeechRecognizer? = null
     private var requestPermission: (() -> Unit)? = null
+    private var speechStartMs: Long? = null
+    private var speechEndMs: Long? = null
 
     fun setRequestPermission(handler: () -> Unit) {
         requestPermission = handler
@@ -620,17 +929,22 @@ class SpeechState(
         recognizer?.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {
                 feedback = "Słucham..."
+                speechStartMs = null
+                speechEndMs = null
             }
 
             override fun onBeginningOfSpeech() {
                 feedback = "Mów teraz..."
+                speechStartMs = System.currentTimeMillis()
             }
 
             override fun onRmsChanged(rmsdB: Float) = Unit
 
             override fun onBufferReceived(buffer: ByteArray?) = Unit
 
-            override fun onEndOfSpeech() = Unit
+            override fun onEndOfSpeech() {
+                speechEndMs = System.currentTimeMillis()
+            }
 
             override fun onError(error: Int) {
                 feedback = "Nie udało się rozpoznać mowy. Spróbuj ponownie."
@@ -639,6 +953,9 @@ class SpeechState(
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val recognized = matches?.firstOrNull().orEmpty()
+                if (speechEndMs == null) {
+                    speechEndMs = System.currentTimeMillis()
+                }
                 updateScore(recognized)
             }
 
@@ -656,7 +973,7 @@ class SpeechState(
             feedback = "Nie rozpoznano wypowiedzi."
             return
         }
-        val targetWords = samplePhrase.normalizeForScoring()
+        val targetWords = lesson.samplePhrase.normalizeForScoring()
         val userWords = recognized.normalizeForScoring()
         if (targetWords.isEmpty()) {
             score = 0
@@ -665,16 +982,39 @@ class SpeechState(
         }
         val matched = targetWords.count { userWords.contains(it) }
         val wordScore = matched.toDouble() / targetWords.size.toDouble()
-        val targetPhonetic = samplePhrase.phoneticKey()
+        val targetPhonetic = lesson.samplePhrase.phoneticKey()
         val userPhonetic = recognized.phoneticKey()
         val phoneticScore = similarityRatio(targetPhonetic, userPhonetic)
-        val combined = (wordScore * 0.4) + (phoneticScore * 0.6)
+        val tempoScore = tempoScore()
+        val accentScore = focusWordsScore(userWords)
+        val combined = (wordScore * 0.3) + (phoneticScore * 0.4) + (tempoScore * 0.2) + (accentScore * 0.1)
         score = (combined * 100).toInt().coerceIn(0, 100)
-        feedback = when {
-            score >= 85 -> "Świetnie! Wymowa bardzo bliska wzorcowej."
-            score >= 60 -> "Dobrze, ale spróbuj wyraźniej wymówić brakujące słowa."
-            else -> "Potrzebujesz więcej ćwiczeń. Skup się na akcentowaniu słów."
+        val tempoHint = when {
+            tempoScore >= 0.9 -> "Tempo bardzo dobre."
+            tempoScore >= 0.7 -> "Tempo OK, ale postaraj się mówić równiej."
+            else -> "Tempo wymaga poprawy – mów pewniej i płynniej."
         }
+        feedback = when {
+            score >= 85 -> "Świetnie! Wymowa bardzo bliska wzorcowej. $tempoHint"
+            score >= 60 -> "Dobrze, ale spróbuj wyraźniej wymówić brakujące słowa. $tempoHint"
+            else -> "Potrzebujesz więcej ćwiczeń. Skup się na akcentowaniu słów. $tempoHint"
+        }
+    }
+
+    private fun tempoScore(): Double {
+        val start = speechStartMs
+        val end = speechEndMs
+        if (start == null || end == null) return 0.7
+        val durationSec = max(0.6, (end - start).toDouble() / 1000.0)
+        val expected = lesson.targetDurationSec
+        val diffRatio = abs(durationSec - expected) / expected
+        return (1.0 - diffRatio).coerceIn(0.0, 1.0)
+    }
+
+    private fun focusWordsScore(userWords: List<String>): Double {
+        if (lesson.focusWords.isEmpty()) return 0.8
+        val matched = lesson.focusWords.count { userWords.contains(it.lowercase(Locale.US)) }
+        return matched.toDouble() / lesson.focusWords.size.toDouble()
     }
 
     fun dispose() {
@@ -687,8 +1027,8 @@ class SpeechState(
 }
 
 @Composable
-fun rememberSpeechRecognizer(context: Context, samplePhrase: String): SpeechState {
-    val speechState = remember { SpeechState(context, samplePhrase) }
+fun rememberSpeechRecognizer(context: Context, lesson: Lesson): SpeechState {
+    val speechState = remember { SpeechState(context, lesson) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
