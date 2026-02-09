@@ -1,6 +1,6 @@
 # bandi
 
-Mobilna aplikacja na Androida do nauki języka angielskiego.
+Mobilna aplikacja na Androida do nauki języka angielskiego z naciskiem na **wymowę**, **rozumienie ze słuchu** i **pisownię**.
 
 ## Cel projektu
 Aplikacja ma prowadzić użytkownika przez lekcje od podstaw do poziomu zaawansowanego. Nauka obejmuje:
@@ -8,19 +8,39 @@ Aplikacja ma prowadzić użytkownika przez lekcje od podstaw do poziomu zaawanso
 - odsłuch poprawnej wymowy (text-to-speech),
 - pytania zadawane po angielsku,
 - odpowiedzi użytkownika przez mikrofon,
-- sprawdzanie poprawności wymowy (speech-to-text / ocena wymowy).
+- sprawdzanie poprawności wymowy (speech-to-text / ocena wymowy),
+- materiały wizualne (obrazki/ilustracje) wspierające zapamiętywanie.
 
 ## Zakres funkcjonalny (MVP)
 - Struktura kursu w modułach/lekcjach (podstawowy → średniozaawansowany → zaawansowany).
-- Lekcje słownictwa z odsłuchem wymowy.
+- Lekcje słownictwa z obrazkami i odsłuchem wymowy.
 - Quizy i pytania głosowe.
 - Rozpoznawanie mowy i weryfikacja poprawności wypowiedzi.
+- Postęp użytkownika (zaliczone lekcje, wyniki testów).
 
-## Kolejne kroki
-1. Ustalenie technologii (np. Kotlin + Jetpack Compose).
-2. Zdefiniowanie struktury lekcji i zakresu treści.
-3. Wybór silnika TTS/STT (np. Android TextToSpeech + SpeechRecognizer lub zewnętrzne API).
-4. Przygotowanie prototypu UI.
+## Proponowana architektura aplikacji
+- **UI**: Kotlin + Jetpack Compose.
+- **Logika domenowa**: warstwa use-case / interactor.
+- **Dane**: lokalna baza (np. Room) + opcjonalna synchronizacja w chmurze.
+- **Audio**: Android TextToSpeech + SpeechRecognizer (lub zewnętrzne API dla lepszej jakości).
+- **Multimedia**: katalog zasobów z obrazkami do słownictwa.
+
+## Co dalej? (Plan działania)
+1. **Projekt UX/UI**
+   - Makiety ekranów: wybór poziomu, lista lekcji, ekran lekcji, ekran ćwiczeń głosowych.
+2. **Struktura treści**
+   - Zdefiniowanie modułów i zakresu materiału (słownictwo, gramatyka, dialogi).
+3. **Prototyp funkcji głosowych**
+   - Integracja TTS + SpeechRecognizer.
+4. **Dodanie zasobów wizualnych**
+   - Obrazki dla słownictwa (np. w formacie WebP w katalogu `assets/`).
+5. **Budowa podstawowej aplikacji**
+   - Nawigacja, lista lekcji, ekran lekcji i pierwsze ćwiczenia.
+
+## Proponowana struktura repozytorium
+- `app/` – moduł Android (UI, logika, nawigacja)
+- `assets/` – obrazki do słownictwa
+- `docs/` – dokumentacja, plan lekcji, makiety UI
 
 ## Jak współtworzyć
 Jeśli chcesz pomóc w rozwoju, opisz proszę:
