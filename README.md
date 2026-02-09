@@ -32,6 +32,12 @@ Aplikacja ma prowadzić użytkownika przez lekcje od podstaw do poziomu zaawanso
 - **Audio**: Android TextToSpeech + SpeechRecognizer (lub zewnętrzne API dla lepszej jakości).
 - **Multimedia**: katalog zasobów z obrazkami do słownictwa.
 
+## Aktualny stan
+- Gotowy szkielet aplikacji Android z Jetpack Compose.
+- Ekran główny z listą lekcji i sekcją mówienia.
+- Ekran lekcji z realnym **TTS/STT** (odsłuch + nagrywanie).
+- Prosty system oceny wymowy oparty o dopasowanie słów.
+
 ## Co dalej? (Plan działania)
 1. **Projekt UX/UI**
    - Makiety ekranów: wybór poziomu, lista lekcji, ekran lekcji, ekran ćwiczeń głosowych.
