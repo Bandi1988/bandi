@@ -1,15 +1,22 @@
 # bandi
 
-Mobilna aplikacja na Androida do nauki języka angielskiego z naciskiem na **wymowę**, **rozumienie ze słuchu** i **pisownię**.
+Mobilna aplikacja na Androida do nauki języka angielskiego z naciskiem na **perfekcyjną wymowę**, **rozumienie ze słuchu** i **pisownię**.
 
 ## Cel projektu
-Aplikacja ma prowadzić użytkownika przez lekcje od podstaw do poziomu zaawansowanego. Nauka obejmuje:
+Aplikacja ma prowadzić użytkownika przez lekcje od podstaw do poziomu zaawansowanego. Kluczowym celem jest **perfekcyjne mówienie po angielsku** (wymowa, intonacja, płynność). Nauka obejmuje:
 - prezentację słówek i ich pisowni,
 - odsłuch poprawnej wymowy (text-to-speech),
 - pytania zadawane po angielsku,
 - odpowiedzi użytkownika przez mikrofon,
 - sprawdzanie poprawności wymowy (speech-to-text / ocena wymowy),
 - materiały wizualne (obrazki/ilustracje) wspierające zapamiętywanie.
+
+## Główne funkcje (priorytet: mowa)
+- Ćwiczenia wymowy z natychmiastową oceną.
+- Dialogi głosowe (pytanie → odpowiedź → feedback).
+- Nagrywanie i odsłuch własnej mowy.
+- Porównanie wymowy użytkownika z wzorcem.
+- Rozpoznawanie mowy i wskazówki do poprawy.
 
 ## Zakres funkcjonalny (MVP)
 - Struktura kursu w modułach/lekcjach (podstawowy → średniozaawansowany → zaawansowany).
