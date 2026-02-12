@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -347,8 +348,21 @@ fun LessonScreen(
     context: Context,
     onScoreUpdated: (String, Int) -> Unit
 ) {
+    var sentenceIndex by remember { mutableStateOf(0) }
+    LaunchedEffect(lesson.id) {
+        sentenceIndex = 0
+    }
+    val currentSentence = remember(lesson, sentenceIndex) {
+        lesson.sentences.getOrNull(sentenceIndex)
+            ?: LessonSentence(
+                id = "${lesson.id}_default",
+                text = lesson.samplePhrase,
+                focusWords = lesson.focusWords,
+                targetDurationSec = lesson.targetDurationSec
+            )
+    }
     val ttsState = rememberTextToSpeech(context)
-    val speechState = rememberSpeechRecognizer(context, lesson)
+    val speechState = rememberSpeechRecognizer(context, lesson, currentSentence)
 
     LaunchedEffect(speechState.score, speechState.lastResult) {
         if (speechState.lastResult.isNotBlank()) {
@@ -373,7 +387,7 @@ fun LessonScreen(
             colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
         ) {
             Text(
-                text = lesson.samplePhrase,
+                text = currentSentence.text,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(16.dp)
@@ -382,7 +396,7 @@ fun LessonScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             FilledTonalButton(onClick = {
-                ttsState.speak(lesson.samplePhrase)
+                ttsState.speak(currentSentence.text)
             }) {
                 Icon(Icons.Default.VolumeUp, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -411,7 +425,13 @@ fun LessonScreen(
         Spacer(modifier = Modifier.height(12.dp))
         PronunciationScore(score = speechState.score, feedback = speechState.feedback)
         Spacer(modifier = Modifier.height(20.dp))
-        LessonExercises(lesson)
+        SentencePicker(
+            sentences = lesson.sentences,
+            selectedIndex = sentenceIndex,
+            onSentenceSelected = { sentenceIndex = it }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        LessonExercises(lesson, currentSentence)
     }
 }
 
@@ -432,7 +452,7 @@ fun LessonHeader(lesson: Lesson) {
 }
 
 @Composable
-fun LessonExercises(lesson: Lesson) {
+fun LessonExercises(lesson: Lesson, sentence: LessonSentence) {
     Text(
         text = "Ćwiczenia dla lekcji",
         style = MaterialTheme.typography.titleMedium
@@ -455,10 +475,38 @@ fun LessonExercises(lesson: Lesson) {
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
-        text = "Wskazówka: zwróć uwagę na rytm i intonację w " + lesson.samplePhrase,
+        text = "Wskazówka: zwróć uwagę na rytm i intonację w " + sentence.text,
         style = MaterialTheme.typography.bodySmall,
         color = Color(0xFF546E7A)
     )
+}
+
+@Composable
+fun SentencePicker(
+    sentences: List<LessonSentence>,
+    selectedIndex: Int,
+    onSentenceSelected: (Int) -> Unit
+) {
+    if (sentences.isEmpty()) return
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(sentences.size) { index ->
+            val isSelected = index == selectedIndex
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isSelected) Color(0xFFBBDEFB) else Color(0xFFF1F5FE)
+                ),
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .clickable { onSentenceSelected(index) }
+            ) {
+                Text(
+                    text = "Zdanie ${index + 1}",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -719,8 +767,39 @@ data class Lesson(
     val level: LessonLevel,
     val targetDurationSec: Double,
     val focusWords: List<String>,
+    val sentences: List<LessonSentence>,
     @DrawableRes val imageRes: Int
 )
+
+data class LessonSentence(
+    val id: String,
+    val text: String,
+    val focusWords: List<String>,
+    val targetDurationSec: Double
+)
+
+private fun defaultSentences(
+    id: String,
+    primary: String,
+    secondary: String,
+    focusWords: List<String>,
+    targetDurationSec: Double
+): List<LessonSentence> {
+    return listOf(
+        LessonSentence(
+            id = "${id}_1",
+            text = primary,
+            focusWords = focusWords,
+            targetDurationSec = targetDurationSec
+        ),
+        LessonSentence(
+            id = "${id}_2",
+            text = secondary,
+            focusWords = focusWords,
+            targetDurationSec = targetDurationSec + 0.4
+        )
+    )
+}
 
 data class Module(
     val id: String,
@@ -749,6 +828,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.BASIC,
             targetDurationSec = 3.8,
             focusWords = listOf("good", "morning", "today"),
+            sentences = defaultSentences(
+                "basics_pronunciation",
+                "Good morning. How are you today?",
+                "Good afternoon. How do you feel today?",
+                listOf("good", "morning", "today"),
+                3.8
+            ),
             imageRes = R.drawable.ic_vocab
         ),
         Lesson(
@@ -760,6 +846,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.BASIC,
             targetDurationSec = 4.2,
             focusWords = listOf("name", "live", "warsaw"),
+            sentences = defaultSentences(
+                "basics_intro",
+                "My name is Anna and I live in Warsaw.",
+                "Hello, I am Anna and I live in Warsaw.",
+                listOf("name", "live", "warsaw"),
+                4.2
+            ),
             imageRes = R.drawable.ic_dialog
         ),
         Lesson(
@@ -771,6 +864,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.BASIC,
             targetDurationSec = 4.4,
             focusWords = listOf("spell", "last", "name"),
+            sentences = defaultSentences(
+                "basics_spelling",
+                "Could you spell your last name for me?",
+                "Please spell your last name slowly.",
+                listOf("spell", "last", "name"),
+                4.4
+            ),
             imageRes = R.drawable.ic_vocab
         ),
         Lesson(
@@ -782,6 +882,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.BASIC,
             targetDurationSec = 3.6,
             focusWords = listOf("where", "nearest", "stop"),
+            sentences = defaultSentences(
+                "basics_questions",
+                "Where is the nearest bus stop?",
+                "How do I get to the nearest station?",
+                listOf("where", "nearest", "stop"),
+                3.6
+            ),
             imageRes = R.drawable.ic_dialog
         ),
         Lesson(
@@ -793,6 +900,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.BASIC,
             targetDurationSec = 5.1,
             focusWords = listOf("sister", "works", "nurse"),
+            sentences = defaultSentences(
+                "basics_family",
+                "My sister lives in Krakow and works as a nurse.",
+                "My brother works in Krakow and visits on weekends.",
+                listOf("sister", "works", "nurse"),
+                5.1
+            ),
             imageRes = R.drawable.ic_vocab
         )
     )
@@ -807,6 +921,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.INTERMEDIATE,
             targetDurationSec = 4.0,
             focusWords = listOf("help", "find", "size"),
+            sentences = defaultSentences(
+                "travel_shopping",
+                "Could you help me find this size?",
+                "Do you have this in a larger size?",
+                listOf("help", "find", "size"),
+                4.0
+            ),
             imageRes = R.drawable.ic_vocab
         ),
         Lesson(
@@ -818,6 +939,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.INTERMEDIATE,
             targetDurationSec = 4.3,
             focusWords = listOf("connecting", "flight", "london"),
+            sentences = defaultSentences(
+                "travel_airport",
+                "I have a connecting flight to London.",
+                "Where is the gate for the flight to London?",
+                listOf("connecting", "flight", "london"),
+                4.3
+            ),
             imageRes = R.drawable.ic_travel
         ),
         Lesson(
@@ -829,6 +957,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.INTERMEDIATE,
             targetDurationSec = 4.8,
             focusWords = listOf("reservation", "under", "name"),
+            sentences = defaultSentences(
+                "travel_hotel",
+                "I have a reservation under the name Kowalski.",
+                "Could I check in for my reservation, please?",
+                listOf("reservation", "under", "name"),
+                4.8
+            ),
             imageRes = R.drawable.ic_travel
         ),
         Lesson(
@@ -840,6 +975,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.INTERMEDIATE,
             targetDurationSec = 4.0,
             focusWords = listOf("chicken", "salad", "please"),
+            sentences = defaultSentences(
+                "travel_restaurant",
+                "Could I have the chicken salad, please?",
+                "I would like the soup and a glass of water.",
+                listOf("chicken", "salad", "please"),
+                4.0
+            ),
             imageRes = R.drawable.ic_travel
         ),
         Lesson(
@@ -851,6 +993,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.INTERMEDIATE,
             targetDurationSec = 4.1,
             focusWords = listOf("bus", "city", "center"),
+            sentences = defaultSentences(
+                "travel_transport",
+                "Does this bus go to the city center?",
+                "Which line goes to the city center?",
+                listOf("bus", "city", "center"),
+                4.1
+            ),
             imageRes = R.drawable.ic_travel
         )
     )
@@ -865,6 +1014,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.INTERMEDIATE,
             targetDurationSec = 4.6,
             focusWords = listOf("review", "project", "timeline"),
+            sentences = defaultSentences(
+                "business_meeting",
+                "Let us review the project timeline together.",
+                "Can we review the timeline for this project?",
+                listOf("review", "project", "timeline"),
+                4.6
+            ),
             imageRes = R.drawable.ic_dialog
         ),
         Lesson(
@@ -876,6 +1032,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.INTERMEDIATE,
             targetDurationSec = 4.5,
             focusWords = listOf("campaign", "targets", "quarter"),
+            sentences = defaultSentences(
+                "business_reporting",
+                "The campaign exceeded our targets this quarter.",
+                "We exceeded the targets set for this quarter.",
+                listOf("campaign", "targets", "quarter"),
+                4.5
+            ),
             imageRes = R.drawable.ic_business
         ),
         Lesson(
@@ -887,6 +1050,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.ADVANCED,
             targetDurationSec = 4.7,
             focusWords = listOf("present", "quarterly", "results"),
+            sentences = defaultSentences(
+                "business_presentation",
+                "Today I will present the quarterly results.",
+                "I will now present the results for this quarter.",
+                listOf("present", "quarterly", "results"),
+                4.7
+            ),
             imageRes = R.drawable.ic_presentation
         ),
         Lesson(
@@ -898,6 +1068,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.ADVANCED,
             targetDurationSec = 5.1,
             focusWords = listOf("appreciate", "feedback", "follow"),
+            sentences = defaultSentences(
+                "business_client",
+                "We appreciate your feedback and will follow up shortly.",
+                "Thank you for your feedback; we will follow up soon.",
+                listOf("appreciate", "feedback", "follow"),
+                5.1
+            ),
             imageRes = R.drawable.ic_business
         ),
         Lesson(
@@ -909,6 +1086,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.INTERMEDIATE,
             targetDurationSec = 4.2,
             focusWords = listOf("wrap", "outline", "steps"),
+            sentences = defaultSentences(
+                "business_online",
+                "Let us wrap up and outline the next steps.",
+                "Before we end, let us outline the next steps.",
+                listOf("wrap", "outline", "steps"),
+                4.2
+            ),
             imageRes = R.drawable.ic_business
         )
     )
@@ -923,6 +1107,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.ADVANCED,
             targetDurationSec = 4.9,
             focusWords = listOf("attention", "thoughtful", "questions"),
+            sentences = defaultSentences(
+                "advanced_speaking",
+                "Thank you for your attention and thoughtful questions.",
+                "Thank you all for your time and attention today.",
+                listOf("attention", "thoughtful", "questions"),
+                4.9
+            ),
             imageRes = R.drawable.ic_presentation
         ),
         Lesson(
@@ -934,6 +1125,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.ADVANCED,
             targetDurationSec = 5.2,
             focusWords = listOf("agreement", "benefits", "sides"),
+            sentences = defaultSentences(
+                "advanced_negotiation",
+                "We can reach an agreement that benefits both sides.",
+                "Let us find an agreement that benefits both sides.",
+                listOf("agreement", "benefits", "sides"),
+                5.2
+            ),
             imageRes = R.drawable.ic_fluency
         ),
         Lesson(
@@ -945,6 +1143,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.ADVANCED,
             targetDurationSec = 5.0,
             focusWords = listOf("respect", "view", "differently"),
+            sentences = defaultSentences(
+                "advanced_debate",
+                "I respect your view, yet I see it differently.",
+                "I respect your view, but I see it in another way.",
+                listOf("respect", "view", "differently"),
+                5.0
+            ),
             imageRes = R.drawable.ic_fluency
         ),
         Lesson(
@@ -956,6 +1161,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.ADVANCED,
             targetDurationSec = 5.1,
             focusWords = listOf("turning", "point", "act"),
+            sentences = defaultSentences(
+                "advanced_storytelling",
+                "The turning point came when we chose to act.",
+                "The story changed when we decided to act.",
+                listOf("turning", "point", "act"),
+                5.1
+            ),
             imageRes = R.drawable.ic_fluency
         ),
         Lesson(
@@ -967,6 +1179,13 @@ fun sampleModules(): List<Module> {
             level = LessonLevel.ADVANCED,
             targetDurationSec = 5.4,
             focusWords = listOf("findings", "significant", "behavior"),
+            sentences = defaultSentences(
+                "advanced_expert",
+                "Our findings highlight a significant shift in behavior.",
+                "Our findings show a significant shift in behavior.",
+                listOf("findings", "significant", "behavior"),
+                5.4
+            ),
             imageRes = R.drawable.ic_presentation
         )
     )
@@ -1070,7 +1289,8 @@ fun rememberTextToSpeech(context: Context): TextToSpeechState {
 
 class SpeechState(
     private val context: Context,
-    private val lesson: Lesson
+    private val lesson: Lesson,
+    private val sentence: LessonSentence
 ) {
     var lastResult by mutableStateOf("")
         private set
@@ -1152,7 +1372,7 @@ class SpeechState(
             feedback = "Nie rozpoznano wypowiedzi."
             return
         }
-        val targetWords = lesson.samplePhrase.normalizeForScoring()
+        val targetWords = sentence.text.normalizeForScoring()
         val userWords = recognized.normalizeForScoring()
         if (targetWords.isEmpty()) {
             score = 0
@@ -1161,7 +1381,7 @@ class SpeechState(
         }
         val matched = targetWords.count { userWords.contains(it) }
         val wordScore = matched.toDouble() / targetWords.size.toDouble()
-        val targetPhonetic = lesson.samplePhrase.phoneticKey()
+        val targetPhonetic = sentence.text.phoneticKey()
         val userPhonetic = recognized.phoneticKey()
         val phoneticScore = similarityRatio(targetPhonetic, userPhonetic)
         val tempoScore = tempoScore()
@@ -1185,15 +1405,15 @@ class SpeechState(
         val end = speechEndMs
         if (start == null || end == null) return 0.7
         val durationSec = max(0.6, (end - start).toDouble() / 1000.0)
-        val expected = lesson.targetDurationSec
+        val expected = sentence.targetDurationSec
         val diffRatio = abs(durationSec - expected) / expected
         return (1.0 - diffRatio).coerceIn(0.0, 1.0)
     }
 
     private fun focusWordsScore(userWords: List<String>): Double {
-        if (lesson.focusWords.isEmpty()) return 0.8
-        val matched = lesson.focusWords.count { userWords.contains(it.lowercase(Locale.US)) }
-        return matched.toDouble() / lesson.focusWords.size.toDouble()
+        if (sentence.focusWords.isEmpty()) return 0.8
+        val matched = sentence.focusWords.count { userWords.contains(it.lowercase(Locale.US)) }
+        return matched.toDouble() / sentence.focusWords.size.toDouble()
     }
 
     fun dispose() {
@@ -1206,8 +1426,12 @@ class SpeechState(
 }
 
 @Composable
-fun rememberSpeechRecognizer(context: Context, lesson: Lesson): SpeechState {
-    val speechState = remember { SpeechState(context, lesson) }
+fun rememberSpeechRecognizer(
+    context: Context,
+    lesson: Lesson,
+    sentence: LessonSentence
+): SpeechState {
+    val speechState = remember(lesson.id, sentence.id) { SpeechState(context, lesson, sentence) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()

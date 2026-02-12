@@ -35,7 +35,7 @@ Aplikacja ma prowadzić użytkownika przez lekcje od podstaw do poziomu zaawanso
 ## Aktualny stan
 - Gotowy szkielet aplikacji Android z Jetpack Compose.
 - Ekran główny z modułami kursu oraz ekranem postępu.
-- Ekran lekcji z realnym **TTS/STT** (odsłuch + nagrywanie).
+- Ekran lekcji z realnym **TTS/STT** (odsłuch + nagrywanie) oraz kilkoma zdaniami w każdej lekcji.
 - Rozbudowany scoring wymowy (dopasowanie słów + fonetyka + tempo + akcent).
 - Ekran ćwiczeń lekcji (shadowing, Q&A, płynność).
 - Zestaw podstawowych grafik (assets) do modułów i lekcji.
