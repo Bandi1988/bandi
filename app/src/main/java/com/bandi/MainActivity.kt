@@ -54,6 +54,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -90,7 +91,11 @@ fun BandiApp(context: Context) {
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
     var selectedModule by remember { mutableStateOf<Module?>(null) }
     var currentTab by remember { mutableStateOf(BandiTab.HOME) }
-    val modules = remember { sampleModules() }
+    val progressMap = remember { mutableStateMapOf<String, Int>() }
+    val baseModules = remember { sampleModules() }
+    val modules = remember(baseModules, progressMap.toMap()) {
+        applyProgress(baseModules, progressMap)
+    }
 
     Scaffold(
         topBar = {
@@ -154,7 +159,10 @@ fun BandiApp(context: Context) {
                 LessonScreen(
                     paddingValues = paddingValues,
                     lesson = selectedLesson!!,
-                    context = context
+                    context = context,
+                    onScoreUpdated = { lessonId, score ->
+                        progressMap[lessonId] = score
+                    }
                 )
             }
             selectedModule != null -> {
@@ -336,10 +344,17 @@ fun ProgressModuleCard(module: Module) {
 fun LessonScreen(
     paddingValues: androidx.compose.foundation.layout.PaddingValues,
     lesson: Lesson,
-    context: Context
+    context: Context,
+    onScoreUpdated: (String, Int) -> Unit
 ) {
     val ttsState = rememberTextToSpeech(context)
     val speechState = rememberSpeechRecognizer(context, lesson)
+
+    LaunchedEffect(speechState.score, speechState.lastResult) {
+        if (speechState.lastResult.isNotBlank()) {
+            onScoreUpdated(lesson.id, speechState.score)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -696,6 +711,7 @@ fun ActionIcon(icon: ImageVector, label: String) {
 }
 
 data class Lesson(
+    val id: String,
     val title: String,
     val subtitle: String,
     val progressPercent: Int,
@@ -707,6 +723,7 @@ data class Lesson(
 )
 
 data class Module(
+    val id: String,
     val title: String,
     val description: String,
     val level: LessonLevel,
@@ -724,6 +741,7 @@ enum class LessonLevel {
 fun sampleModules(): List<Module> {
     val basics = listOf(
         Lesson(
+            id = "basics_pronunciation",
             title = "Podstawy wymowy",
             subtitle = "Samogłoski i spółgłoski",
             progressPercent = 15,
@@ -734,6 +752,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_vocab
         ),
         Lesson(
+            id = "basics_intro",
             title = "Przedstawianie się",
             subtitle = "Pierwsze rozmowy",
             progressPercent = 20,
@@ -744,6 +763,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_dialog
         ),
         Lesson(
+            id = "basics_spelling",
             title = "Alfabet i literowanie",
             subtitle = "Spell it out",
             progressPercent = 12,
@@ -754,6 +774,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_vocab
         ),
         Lesson(
+            id = "basics_questions",
             title = "Pytania podstawowe",
             subtitle = "Where, what, how",
             progressPercent = 18,
@@ -764,6 +785,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_dialog
         ),
         Lesson(
+            id = "basics_family",
             title = "Rodzina i relacje",
             subtitle = "Opisywanie bliskich",
             progressPercent = 10,
@@ -777,6 +799,7 @@ fun sampleModules(): List<Module> {
 
     val travel = listOf(
         Lesson(
+            id = "travel_shopping",
             title = "Zakupy w sklepie",
             subtitle = "Zwroty praktyczne",
             progressPercent = 45,
@@ -787,6 +810,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_vocab
         ),
         Lesson(
+            id = "travel_airport",
             title = "Na lotnisku",
             subtitle = "Odprawa i pytania",
             progressPercent = 35,
@@ -797,6 +821,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_travel
         ),
         Lesson(
+            id = "travel_hotel",
             title = "Hotel i rezerwacja",
             subtitle = "Check-in",
             progressPercent = 28,
@@ -807,6 +832,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_travel
         ),
         Lesson(
+            id = "travel_restaurant",
             title = "Restauracja",
             subtitle = "Zamawianie jedzenia",
             progressPercent = 32,
@@ -817,6 +843,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_travel
         ),
         Lesson(
+            id = "travel_transport",
             title = "Transport miejski",
             subtitle = "Bilety i kierunki",
             progressPercent = 22,
@@ -830,6 +857,7 @@ fun sampleModules(): List<Module> {
 
     val business = listOf(
         Lesson(
+            id = "business_meeting",
             title = "Dialog w pracy",
             subtitle = "Spotkanie zespołu",
             progressPercent = 60,
@@ -840,6 +868,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_dialog
         ),
         Lesson(
+            id = "business_reporting",
             title = "Raportowanie",
             subtitle = "Statusy i wyniki",
             progressPercent = 40,
@@ -850,6 +879,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_business
         ),
         Lesson(
+            id = "business_presentation",
             title = "Prezentacja",
             subtitle = "Mowa formalna",
             progressPercent = 10,
@@ -860,6 +890,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_presentation
         ),
         Lesson(
+            id = "business_client",
             title = "Rozmowa z klientem",
             subtitle = "Budowanie relacji",
             progressPercent = 25,
@@ -870,6 +901,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_business
         ),
         Lesson(
+            id = "business_online",
             title = "Spotkanie online",
             subtitle = "Zasady i podsumowanie",
             progressPercent = 18,
@@ -883,6 +915,7 @@ fun sampleModules(): List<Module> {
 
     val advanced = listOf(
         Lesson(
+            id = "advanced_speaking",
             title = "Wystąpienie publiczne",
             subtitle = "Pewność i płynność",
             progressPercent = 5,
@@ -893,6 +926,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_presentation
         ),
         Lesson(
+            id = "advanced_negotiation",
             title = "Negocjacje",
             subtitle = "Ton i perswazja",
             progressPercent = 12,
@@ -903,6 +937,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_fluency
         ),
         Lesson(
+            id = "advanced_debate",
             title = "Debata",
             subtitle = "Argumentacja",
             progressPercent = 8,
@@ -913,6 +948,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_fluency
         ),
         Lesson(
+            id = "advanced_storytelling",
             title = "Storytelling",
             subtitle = "Narracja i emocje",
             progressPercent = 6,
@@ -923,6 +959,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_fluency
         ),
         Lesson(
+            id = "advanced_expert",
             title = "Wystąpienie eksperckie",
             subtitle = "Precyzja i pewność",
             progressPercent = 4,
@@ -936,6 +973,7 @@ fun sampleModules(): List<Module> {
 
     return listOf(
         Module(
+            id = "module_basics",
             title = "Start z wymową",
             description = "Podstawy dykcji i intonacji.",
             level = LessonLevel.BASIC,
@@ -944,6 +982,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_vocab
         ),
         Module(
+            id = "module_travel",
             title = "Podróże i zakupy",
             description = "Praktyczne dialogi w ruchu.",
             level = LessonLevel.INTERMEDIATE,
@@ -952,6 +991,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_travel
         ),
         Module(
+            id = "module_business",
             title = "Business English",
             description = "Spotkania, prezentacje, formalny styl.",
             level = LessonLevel.INTERMEDIATE,
@@ -960,6 +1000,7 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_business
         ),
         Module(
+            id = "module_advanced",
             title = "Zaawansowana płynność",
             description = "Wystąpienia i negocjacje.",
             level = LessonLevel.ADVANCED,
@@ -968,6 +1009,24 @@ fun sampleModules(): List<Module> {
             imageRes = R.drawable.ic_fluency
         )
     )
+}
+
+private fun applyProgress(
+    modules: List<Module>,
+    progressMap: Map<String, Int>
+): List<Module> {
+    return modules.map { module ->
+        val updatedLessons = module.lessons.map { lesson ->
+            val updatedProgress = progressMap[lesson.id] ?: lesson.progressPercent
+            lesson.copy(progressPercent = updatedProgress)
+        }
+        val avgProgress = if (updatedLessons.isNotEmpty()) {
+            updatedLessons.map { it.progressPercent }.average().toInt()
+        } else {
+            module.progressPercent
+        }
+        module.copy(lessons = updatedLessons, progressPercent = avgProgress)
+    }
 }
 
 @Preview(showBackground = true)
