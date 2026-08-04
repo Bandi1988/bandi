@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#7f1638" />
+  <meta name="description" content="Blisko Siebie — demonstracyjny portal randkowy 18+" />
+  <title>Blisko Siebie — poznaj kogoś blisko</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="ageGate" class="age-gate hidden" role="dialog" aria-modal="true" aria-labelledby="ageTitle">
+    <div class="age-card">
+      <div class="brand-mark large">B</div>
+      <p class="eyebrow">PORTAL DLA DOROSŁYCH</p>
+      <h1 id="ageTitle">Czy masz ukończone 18 lat?</h1>
+      <p>Blisko Siebie jest portalem społecznościowo-randkowym wyłącznie dla osób pełnoletnich.</p>
+      <div class="age-actions">
+        <button class="button primary" id="confirmAge">Tak, mam 18 lat</button>
+        <button class="button ghost" id="rejectAge">Nie</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app">
+    <header class="topbar">
+      <a class="brand" href="#" data-view="discover" aria-label="Blisko Siebie — strona główna">
+        <span class="brand-mark">B</span>
+        <span class="brand-copy"><strong>Blisko</strong><small>Siebie</small></span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Główna nawigacja">
+        <button class="nav-link active" data-view="discover">Odkrywaj</button>
+        <button class="nav-link" data-view="search">Szukaj</button>
+        <button class="nav-link" data-view="likes">Polubienia</button>
+        <button class="nav-link" data-view="messages">Wiadomości <span class="badge" id="messageBadge">2</span></button>
+      </nav>
+
+      <div class="top-actions">
+        <button class="icon-button" id="notificationsBtn" aria-label="Powiadomienia">🔔<span class="dot"></span></button>
+        <button class="vip-chip" data-view="vip">VIP</button>
+        <button class="profile-chip" data-view="profile"><span class="avatar mini">K</span><span>Kamil</span></button>
+      </div>
+    </header>
+
+    <main id="mainContent">
+      <section class="view active" id="view-discover" data-view-panel="discover">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">POZNAJ KOGOŚ BLISKO</p>
+            <h1>Może właśnie dziś zacznie się <span>coś pięknego.</span></h1>
+            <p class="hero-copy">Odkrywaj osoby z Twojej okolicy, rozmawiaj i umawiaj się bezpiecznie.</p>
+          </div>
+          <div class="quota-card" id="quotaCard">
+            <div class="quota-icon">✉</div>
+            <div><strong id="quotaTitle">8 z 10 wiadomości zostało</strong><small id="quotaSubtitle">Darmowy limit odnawia się co miesiąc</small></div>
+            <button class="button compact" data-view="vip">Zobacz VIP</button>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div><p class="eyebrow">DLA CIEBIE</p><h2>Osoby, które mogą Cię zainteresować</h2></div>
+          <div class="view-switch"><button class="active" data-layout="grid" aria-label="Widok kafelków">▦</button><button data-layout="list" aria-label="Widok listy">☰</button></div>
+        </div>
+        <div class="profile-grid" id="discoverGrid"></div>
+      </section>
+
+      <section class="view" id="view-search" data-view-panel="search">
+        <div class="page-grid search-layout">
+          <aside class="filter-panel">
+            <div class="panel-title"><div><p class="eyebrow">FILTRY</p><h2>Szukaj osób</h2></div><button class="text-button" id="resetFilters">Wyczyść</button></div>
+            <label>Szukam
+              <select id="filterGender"><option value="all">Wszystkich</option><option value="woman">Kobiet</option><option value="man">Mężczyzn</option></select>
+            </label>
+            <label>Miasto
+              <input id="filterCity" list="citiesList" placeholder="Wpisz miasto" autocomplete="off" />
+              <datalist id="citiesList"></datalist>
+            </label>
+            <div class="range-row">
+              <label>Wiek od<input id="filterAgeMin" type="number" min="18" max="99" value="24" /></label>
+              <label>do<input id="filterAgeMax" type="number" min="18" max="99" value="45" /></label>
+            </div>
+            <label>Rodzaj relacji
+              <select id="filterRelation"><option value="all">Dowolny</option><option value="Związek">Stały związek</option><option value="Randki">Randki</option><option value="Przyjaźń">Przyjaźń</option></select>
+            </label>
+            <label class="check-row"><input type="checkbox" id="filterOnline" /><span>Tylko osoby online</span></label>
+            <label class="check-row"><input type="checkbox" id="filterPhoto" checked /><span>Tylko ze zdjęciem</span></label>
+            <button class="button primary full" id="applyFilters">Pokaż wyniki</button>
+          </aside>
+          <div>
+            <div class="section-heading compact-heading"><div><p class="eyebrow">WYNIKI</p><h2 id="resultsCount">Znaleziono 12 osób</h2></div><select id="sortProfiles" class="sort-select"><option value="recommended">Polecane</option><option value="distance">Najbliżej</option><option value="ageAsc">Wiek rosnąco</option><option value="newest">Najnowsze</option></select></div>
+            <div class="profile-grid" id="searchGrid"></div>
+            <div class="empty-state hidden" id="emptySearch"><div class="empty-icon">⌕</div><h3>Brak pasujących profili</h3><p>Zmień miasto, wiek lub inne filtry.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-likes" data-view-panel="likes">
+        <div class="page-head"><div><p class="eyebrow">TWOJE KONTAKTY</p><h1>Polubienia i dopasowania</h1></div></div>
+        <div class="tabs" id="likesTabs"><button class="active" data-like-tab="matches">Dopasowania <span>3</span></button><button data-like-tab="liked">Polubione</button><button data-like-tab="favorites">Ulubione</button><button data-like-tab="visits">Odwiedziny</button></div>
+        <div class="profile-grid" id="likesGrid"></div>
+      </section>
+
+      <section class="view" id="view-messages" data-view-panel="messages">
+        <div class="messages-shell">
+          <aside class="conversation-list">
+            <div class="conversation-head"><div><p class="eyebrow">CZAT</p><h2>Wiadomości</h2></div><button class="icon-button">✎</button></div>
+            <div class="conversation-search"><span>⌕</span><input id="conversationSearch" placeholder="Szukaj rozmowy" /></div>
+            <div id="conversationList"></div>
+          </aside>
+          <section class="chat-panel" id="chatPanel">
+            <div class="chat-empty"><div class="empty-icon">💬</div><h3>Wybierz rozmowę</h3><p>Twoje wiadomości pojawią się tutaj.</p></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-vip" data-view-panel="vip">
+        <div class="vip-hero">
+          <span class="vip-crown">♛</span>
+          <p class="eyebrow">BLISKO VIP</p>
+          <h1>Pisz bez limitu. Poznawaj bez przeszkód.</h1>
+          <p>VIP dla mężczyzn kosztuje tylko <strong>20 zł miesięcznie</strong>. Kobiety korzystają z wiadomości bezpłatnie.</p>
+          <div class="price"><strong>20 zł</strong><span>/ miesiąc</span></div>
+          <button class="button primary large" id="buyVip">Kup VIP — wersja demonstracyjna</button>
+          <small>To prototyp. Przycisk nie pobiera prawdziwej płatności.</small>
+        </div>
+        <div class="benefits-grid">
+          <article><span>∞</span><h3>Nielimitowane wiadomości</h3><p>Pisz do dowolnej liczby osób bez miesięcznego limitu.</p></article>
+          <article><span>👁</span><h3>Pełna lista odwiedzin</h3><p>Zobacz wszystkie osoby, które oglądały Twój profil.</p></article>
+          <article><span>★</span><h3>Wyróżniony profil</h3><p>Twój profil pojawi się wyżej w wynikach wyszukiwania.</p></article>
+          <article><span>✓</span><h3>Większa wiarygodność</h3><p>Specjalne oznaczenie aktywnego użytkownika VIP.</p></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-profile" data-view-panel="profile">
+        <div class="profile-page-grid">
+          <aside class="account-card">
+            <div class="avatar huge">K</div><h2>Kamil, 37</h2><p>Bogatynia</p><span class="status-pill online">● Online</span>
+            <button class="button outline full" id="editProfileBtn">Edytuj profil</button>
+            <button class="button ghost full" data-view="admin">Panel administratora demo</button>
+          </aside>
+          <div class="settings-card">
+            <div class="panel-title"><div><p class="eyebrow">USTAWIENIA</p><h2>Moje konto</h2></div></div>
+            <form id="profileForm">
+              <div class="form-grid">
+                <label>Imię<input id="profileName" value="Kamil" /></label>
+                <label>Miasto<input id="profileCity" list="citiesList" value="Bogatynia" /></label>
+                <label>Płeć<select id="profileGender"><option value="man">Mężczyzna</option><option value="woman">Kobieta</option></select></label>
+                <label>Szukam<select><option>Kobiet</option><option>Mężczyzn</option><option>Wszystkich</option></select></label>
+              </div>
+              <label>O mnie<textarea rows="5">Lubię sport, podróże i dobre rozmowy. Szukam kogoś szczerego i pozytywnego.</textarea></label>
+              <div class="form-actions"><button type="submit" class="button primary">Zapisz zmiany</button></div>
+            </form>
+            <hr />
+            <div class="danger-zone"><div><h3>Bezpieczeństwo i dane</h3><p>Zablokowani użytkownicy, eksport danych i usunięcie konta.</p></div><button class="button outline">Zarządzaj</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-admin" data-view-panel="admin">
+        <div class="page-head"><div><p class="eyebrow">PANEL DEMONSTRACYJNY</p><h1>Administracja portalu</h1></div><button class="button outline" data-view="profile">Wróć do profilu</button></div>
+        <div class="stats-grid"><article><span>Użytkownicy</span><strong>1 248</strong><small>+38 w tym miesiącu</small></article><article><span>Aktywne VIP</span><strong>184</strong><small>14,7% mężczyzn</small></article><article><span>Zgłoszenia</span><strong>7</strong><small>3 pilne</small></article><article><span>Przychód MRR</span><strong>3 680 zł</strong><small>wersja demonstracyjna</small></article></div>
+        <div class="admin-table-card"><div class="panel-title"><div><p class="eyebrow">MODERACJA</p><h2>Ostatnie zgłoszenia</h2></div></div><div class="table-wrap"><table><thead><tr><th>Użytkownik</th><th>Powód</th><th>Data</th><th>Status</th><th>Akcja</th></tr></thead><tbody><tr><td>Profil #1042</td><td>Podejrzane wiadomości</td><td>Dzisiaj, 09:12</td><td><span class="status-pill warning">Nowe</span></td><td><button class="text-button">Sprawdź</button></td></tr><tr><td>Profil #998</td><td>Fałszywe zdjęcie</td><td>Wczoraj, 18:46</td><td><span class="status-pill">W toku</span></td><td><button class="text-button">Sprawdź</button></td></tr><tr><td>Profil #876</td><td>Obraźliwa treść</td><td>02.08.2026</td><td><span class="status-pill online">Zamknięte</span></td><td><button class="text-button">Szczegóły</button></td></tr></tbody></table></div></div>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Nawigacja mobilna">
+      <button class="active" data-view="discover"><span>♡</span>Odkrywaj</button>
+      <button data-view="search"><span>⌕</span>Szukaj</button>
+      <button data-view="likes"><span>♥</span>Polubienia</button>
+      <button data-view="messages"><span>✉</span>Wiadomości</button>
+      <button data-view="profile"><span>●</span>Profil</button>
+    </nav>
+
+    <footer>
+      <div class="footer-brand"><span class="brand-mark">B</span><div><strong>Blisko Siebie</strong><p>Bezpieczne miejsce do poznawania ludzi.</p></div></div>
+      <div class="footer-links"><button data-legal="Regulamin">Regulamin</button><button data-legal="Prywatność">Prywatność</button><button data-legal="Cookies">Cookies</button><button data-legal="Bezpieczne randki">Bezpieczne randki</button><button data-legal="Kontakt">Kontakt</button></div>
+      <small>© 2026 Blisko Siebie — prototyp demonstracyjny 18+</small>
+    </footer>
+  </div>
+
+  <div class="modal-backdrop hidden" id="profileModal"><div class="modal profile-modal"><button class="modal-close" data-close-modal="profileModal">×</button><div id="profileModalContent"></div></div></div>
+  <div class="modal-backdrop hidden" id="vipModal"><div class="modal small-modal"><button class="modal-close" data-close-modal="vipModal">×</button><div class="modal-symbol">♛</div><p class="eyebrow">LIMIT WIADOMOŚCI</p><h2>Wykorzystano 10 darmowych wiadomości</h2><p>Aktywuj VIP za 20 zł miesięcznie, aby pisać bez limitu. Kobiety mają wiadomości bezpłatnie.</p><button class="button primary full" data-view="vip" data-close-modal="vipModal">Zobacz pakiet VIP</button></div></div>
+  <div class="modal-backdrop hidden" id="legalModal"><div class="modal legal-modal"><button class="modal-close" data-close-modal="legalModal">×</button><div id="legalContent"></div></div></div>
+  <div class="notifications-panel hidden" id="notificationsPanel"><div class="panel-title"><h3>Powiadomienia</h3><button class="text-button" id="clearNotifications">Oznacz jako przeczytane</button></div><div class="notification-item"><span>♥</span><div><strong>Ola polubiła Twój profil</strong><small>5 minut temu</small></div></div><div class="notification-item"><span>👁</span><div><strong>Nowa osoba odwiedziła Twój profil</strong><small>32 minuty temu</small></div></div><div class="notification-item"><span>✉</span><div><strong>Masz nową wiadomość od Anny</strong><small>1 godzinę temu</small></div></div></div>
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
